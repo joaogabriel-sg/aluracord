@@ -2,7 +2,7 @@ import { Box, Image, Text } from "@skynexui/components";
 import { useTheme } from "styled-components";
 
 type Message = {
-  id: string;
+  id: number;
   from: string;
   text: string;
 };

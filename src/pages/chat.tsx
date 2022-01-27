@@ -1,14 +1,15 @@
-import { KeyboardEvent, useState } from "react";
+import { KeyboardEvent, useEffect, useState } from "react";
 import Head from "next/head";
 import { Box, TextField } from "@skynexui/components";
 import { useTheme } from "styled-components";
 
 import { ChatHeader, ChatMessageList } from "@/components";
 
+import { supabase } from "@/shared/services";
 import { appName } from "@/shared/constants";
 
 type Message = {
-  id: string;
+  id: number;
   from: string;
   text: string;
 };
@@ -20,10 +21,15 @@ export default function ChatPage() {
   const theme = useTheme();
 
   function createNewMessage() {
-    const newMessage = { id: "asdfhkl", from: "joaogabriel-sg", text: message };
+    const newMessage = { from: "joaogabriel-sg", text: message };
 
-    setMessageList((prevMessageList) => [newMessage, ...prevMessageList]);
-    setMessage("");
+    supabase
+      .from("messages")
+      .insert([newMessage])
+      .then(({ data }) => {
+        setMessageList((prevMessageList) => [data[0], ...prevMessageList]);
+        setMessage("");
+      });
   }
 
   function handleMessageKeyPress(event: KeyboardEvent<HTMLInputElement>) {
@@ -32,6 +38,16 @@ export default function ChatPage() {
       createNewMessage();
     }
   }
+
+  useEffect(() => {
+    supabase
+      .from("messages")
+      .select("*")
+      .order("id", { ascending: false })
+      .then(({ data }) => {
+        setMessageList(data);
+      });
+  }, []);
 
   return (
     <>
