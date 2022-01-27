@@ -1,4 +1,6 @@
+import { FormEvent, useState } from "react";
 import Head from "next/head";
+import { useRouter } from "next/router";
 import { useTheme } from "styled-components";
 import { Box, Button, Text, TextField, Image } from "@skynexui/components";
 
@@ -8,8 +10,14 @@ import { Title } from "@/styles/pages/Home";
 
 export default function HomePage() {
   const theme = useTheme();
+  const router = useRouter();
 
-  const username = "joaogabriel-sg";
+  const [username, setUsername] = useState("joaogabriel-sg");
+
+  function handleSubmit(event: FormEvent) {
+    event.preventDefault();
+    router.push("/chat");
+  }
 
   return (
     <>
@@ -48,6 +56,7 @@ export default function HomePage() {
         >
           <Box
             as="form"
+            onSubmit={handleSubmit}
             styleSheet={{
               display: "flex",
               flexDirection: "column",
@@ -70,6 +79,8 @@ export default function HomePage() {
             </Text>
 
             <TextField
+              value={username}
+              onChange={({ target }) => setUsername(target.value)}
               fullWidth
               textFieldColors={{
                 neutral: {
