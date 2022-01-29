@@ -1,9 +1,10 @@
 import { KeyboardEvent, useEffect, useState } from "react";
 import Head from "next/head";
+import { useRouter } from "next/router";
 import { Box, TextField } from "@skynexui/components";
 import { useTheme } from "styled-components";
 
-import { ChatHeader, ChatMessageList } from "@/components";
+import { ButtonSendSticker, ChatHeader, ChatMessageList } from "@/components";
 
 import { supabase } from "@/shared/services";
 import { appName } from "@/shared/constants";
@@ -14,20 +15,33 @@ type Message = {
   text: string;
 };
 
+type AddMessageProps = (message: Message) => void;
+
+function getMessagesInRealTime(addMessage: AddMessageProps) {
+  return supabase
+    .from("messages")
+    .on("INSERT", (message) => {
+      addMessage(message.new);
+    })
+    .subscribe();
+}
+
 export default function ChatPage() {
   const [message, setMessage] = useState("");
   const [messageList, setMessageList] = useState<Message[]>([]);
 
   const theme = useTheme();
 
-  function createNewMessage() {
-    const newMessage = { from: "joaogabriel-sg", text: message };
+  const router = useRouter();
+  const loggedUser = router.query.username;
+
+  function createNewMessage(newMessage: string) {
+    const newMessageData = { from: loggedUser, text: newMessage };
 
     supabase
       .from("messages")
-      .insert([newMessage])
-      .then(({ data }) => {
-        setMessageList((prevMessageList) => [data[0], ...prevMessageList]);
+      .insert([newMessageData])
+      .then(() => {
         setMessage("");
       });
   }
@@ -35,7 +49,7 @@ export default function ChatPage() {
   function handleMessageKeyPress(event: KeyboardEvent<HTMLInputElement>) {
     if (event.key === "Enter") {
       event.preventDefault();
-      createNewMessage();
+      createNewMessage(message);
     }
   }
 
@@ -47,6 +61,10 @@ export default function ChatPage() {
       .then(({ data }) => {
         setMessageList(data);
       });
+
+    const subscribe = getMessagesInRealTime((message) => {
+      setMessageList((prevMessageList) => [message, ...prevMessageList]);
+    });
   }, []);
 
   return (
@@ -120,6 +138,12 @@ export default function ChatPage() {
                   backgroundColor: theme.colors.neutrals[800],
                   marginRight: "12px",
                   color: theme.colors.neutrals[200],
+                }}
+              />
+
+              <ButtonSendSticker
+                onStickerClick={(sticker) => {
+                  createNewMessage(`:sticker:${sticker}`);
                 }}
               />
             </Box>

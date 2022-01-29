@@ -62,8 +62,14 @@ export function ChatMessageList({ messages }: ChatMessageList) {
               {new Date().toLocaleDateString()}
             </Text>
           </Box>
-
-          {message.text}
+          {message.text.startsWith(":sticker:") ? (
+            <Image
+              src={message.text.replace(":sticker:", "")}
+              styleSheet={{ maxWidth: "150px" }}
+            />
+          ) : (
+            message.text
+          )}
         </Text>
       ))}
     </Box>

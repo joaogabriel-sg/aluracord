@@ -16,7 +16,7 @@ export default function HomePage() {
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    router.push("/chat");
+    router.push(`/chat?username=${username}`);
   }
 
   return (
